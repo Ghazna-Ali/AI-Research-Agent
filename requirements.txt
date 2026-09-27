@@ -1,3 +1,5 @@
-crewai[tools,litellm]==1.15.22
+crewai==1.15.22
+crewai-tools==1.15.22
+litellm==1.102.1
 ddgs==9.16.0
 streamlit==1.64.0

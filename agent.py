@@ -1,7 +1,23 @@
 from crewai import Agent, Task, Crew, Process, LLM
 from tools import web_search_tool
 
+from crewai import Agent, Task, Crew, Process, LLM
+from tools import web_search_tool
 
+# --- Workaround for a crewai 1.15.x bug ---
+# crewai tags messages with an internal "cache_breakpoint" key meant for
+# Anthropic-style prompt caching. Its native Anthropic client strips this
+# key before sending the request, but the generic LiteLLM path used for
+# other providers (Groq included) does not, so the raw key leaks into
+# the JSON body. Groq's API validates requests strictly and rejects any
+# unknown field, which surfaces as:
+#   litellm.BadRequestError: ... property 'cache_breakpoint' is unsupported
+# We don't need prompt caching for Groq anyway, so this makes the
+# tagging function a no-op. Safe — no effect on the agent's behavior.
+import crewai.llms.cache as _crewai_cache
+
+_crewai_cache.mark_cache_breakpoint = lambda message: message
+# --- end workaround ---
 def build_crew(groq_api_key: str, topic: str) -> Crew:
     """
     Builds a single-agent CrewAI crew that researches `topic` using a free
